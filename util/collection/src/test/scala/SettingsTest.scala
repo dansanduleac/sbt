@@ -21,7 +21,7 @@ object SettingsTest extends Properties("settings")
 		singleIntTest( chainBind(value(abs)), 0 )
 	}
 
-	property("Allows references to completed settings") = forAllNoShrink(30) { allowedReference _ }
+	property("Allows references to completed settings") = forAllNoShrink(30) { allowedReference }
 	final def allowedReference(intermediate: Int): Prop =
 	{
 		val top = value(intermediate)
@@ -35,6 +35,34 @@ object SettingsTest extends Properties("settings")
 		try { evaluate( setting(chk, iterate(top)) :: Nil); true }
 		catch { case e: java.lang.Exception => ("Unexpected exception: " + e) |: false }
 	}
+
+  lazy val der = AttributeKey[Int]("First derived setting")
+  lazy val der1 = AttributeKey[Int]("Second derived setting")
+  lazy val derk = ScopedKey( Scope(0), der)
+  lazy val derk1 = ScopedKey( Scope(0), der1)
+
+  property("Derives setting depending on another derived and a normal setting") = derivedSettings
+  final def derivedSettings: Prop =
+  {
+    // Copied from main/settings/`sbt.Scoped`
+    final class Apply2[A,B](t2: (Initialize[A], Initialize[B])) {
+      def apply[T](z: (A,B) => T) = app[AList.T2K[A,B]#l, T]( t2 )( z.tupled )(AList.tuple2[A,B])
+      def identity = apply(_ -> _)
+    }
+    val derivedSettings: Seq[Setting[Int]] =
+    {
+      val original = setting(derk, chk) // derk gets the value of chk
+      val derk1init = new Apply2(derk -> chk).apply { (p, _) => p + 1 }
+      original :: setting(derk1, derk1init) :: Nil
+    } map { derive(_) }
+    try {
+
+      { checkKey(derk1, Some(1), evaluate(setting(chk, value(0)) +: derivedSettings)) :| "Not derived?" } &&
+      { checkKey( derk1, None, evaluate(derivedSettings)) && checkKey( derk, None, evaluate(derivedSettings)) :|
+        "Should not be derived" }
+    }
+    catch { case e: java.lang.Exception => ("Unexpected exception: " + e) |: false }
+  }
 
 // Circular (dynamic) references currently loop infinitely.
 //  This is the expected behavior (detecting dynamic cycles is expensive),
