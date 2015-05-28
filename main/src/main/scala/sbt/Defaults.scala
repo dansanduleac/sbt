@@ -1340,7 +1340,7 @@ object Classpaths {
     }
   def moduleSettings0: Initialize[Task[ModuleSettings]] = Def.task {
     new InlineConfigurationWithExcludes(projectID.value, projectInfo.value, allDependencies.value, dependencyOverrides.value, excludeDependencies.value,
-      ivyXML.value, ivyConfigurations.value, defaultConfiguration.value, ivyScala.value, ivyValidate.value, conflictManager.value)
+      ivyXML.value, ivyConfigurations.value, defaultConfiguration.value, ivyScala.value, ivyValidate.value, conflictManager.value, None)
   }
 
   private[this] def sbtClassifiersGlobalDefaults = Defaults.globalDefaults(Seq(

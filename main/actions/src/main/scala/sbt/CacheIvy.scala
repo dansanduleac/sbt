@@ -150,7 +150,7 @@ object CacheIvy {
   object L4 {
     implicit val inlineWithExcludesToHL = (c: InlineConfigurationWithExcludes) =>
       c.module :+: c.dependencies :+: c.ivyXML :+: c.configurations :+: c.defaultConfiguration.map(_.name) :+:
-        c.ivyScala :+: c.validate :+: c.overrides :+: c.excludes :+: HNil
+        c.ivyScala :+: c.validate :+: c.overrides :+: c.excludes :+: c.defaultConfMapping :+: HNil
     implicit def moduleConfToHL = (m: ModuleConfiguration) => m.organization :+: m.name :+: m.revision :+: m.resolver :+: HNil
     implicit def inlineToHL = (c: InlineConfiguration) => c.module :+: c.dependencies :+: c.ivyXML :+: c.configurations :+: c.defaultConfiguration.map(_.name) :+: c.ivyScala :+: c.validate :+: c.overrides :+: HNil
   }
